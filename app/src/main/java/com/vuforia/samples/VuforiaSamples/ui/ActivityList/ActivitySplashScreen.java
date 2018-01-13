@@ -13,13 +13,18 @@ import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Message;
 import android.view.LayoutInflater;
 import android.view.ViewGroup.LayoutParams;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.RelativeLayout;
+import android.widget.TextView;
 
 import com.vuforia.samples.VuforiaSamples.R;
+import com.vuforia.samples.VuforiaSamples.app.VuMark.VuMark;
+import com.vuforia.samples.VuforiaSamples.ui.Common.PrefarenceRequest;
+import com.vuforia.samples.VuforiaSamples.ui.Common.UserInfo;
 
 
 public class ActivitySplashScreen extends Activity
@@ -43,6 +48,8 @@ public class ActivitySplashScreen extends Activity
         
         addContentView(layout, new LayoutParams(LayoutParams.MATCH_PARENT,
             LayoutParams.MATCH_PARENT));
+
+
         
         final Handler handler = new Handler();
         handler.postDelayed(new Runnable()
@@ -51,9 +58,24 @@ public class ActivitySplashScreen extends Activity
             @Override
             public void run()
             {
-                
-                Intent intent = new Intent(ActivitySplashScreen.this,
-                    ActivityMenu.class);
+
+                //プリファレンス
+                PrefarenceRequest.getUserPrefarence(PrefarenceRequest.PRENAME_USERINFO,getApplicationContext());
+
+                //Intent
+                Intent intent = null;
+
+                if(UserInfo.getInstance().getUserId().equals("")) {
+                    //登録画面に遷移する
+                    intent = new Intent(ActivitySplashScreen.this,ActivityUserRegister.class);
+                }else {
+                    //カメラ画面に遷移する
+                    String id = UserInfo.getInstance().getUserId();
+                    intent = new Intent(ActivitySplashScreen.this, VuMark.class);
+                            //VuMark.class);
+                }
+
+
                 startActivity(intent);
                 
             }
