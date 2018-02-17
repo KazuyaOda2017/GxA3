@@ -6,13 +6,21 @@ package com.vuforia.samples.VuforiaSamples.ui.Common;
 
 public class ProductInfo {
 
+    public int markerId;
+
     public String contentsName;
 
     public String description;
 
-    public String delInfo;
+    public String dtlInfo;
 
     public String indexInfo;
+
+    public String insertDate;
+
+    public String updateDate;
+
+    public  String image;
 
     //コンストラクタ
     public ProductInfo(){}

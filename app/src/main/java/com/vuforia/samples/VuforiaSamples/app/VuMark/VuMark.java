@@ -20,6 +20,7 @@ import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.Color;
+import android.net.Uri;
 import android.opengl.Visibility;
 import android.os.Build;
 import android.os.Bundle;
@@ -40,6 +41,7 @@ import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vuforia.CameraDevice;
@@ -63,8 +65,10 @@ import com.vuforia.samples.VuforiaSamples.R;
 import com.vuforia.samples.VuforiaSamples.ui.ActivityList.ActivitySplashScreen;
 import com.vuforia.samples.VuforiaSamples.ui.ActivityList.ActivityTabMain;
 import com.vuforia.samples.VuforiaSamples.ui.ActivityList.ActivityUserRegister;
+import com.vuforia.samples.VuforiaSamples.ui.Common.CmtDataList;
 import com.vuforia.samples.VuforiaSamples.ui.Common.CommentInfo;
 import com.vuforia.samples.VuforiaSamples.ui.Common.ConvertJson;
+import com.vuforia.samples.VuforiaSamples.ui.Common.HttpRequest;
 import com.vuforia.samples.VuforiaSamples.ui.Common.ProductInfo;
 import com.vuforia.samples.VuforiaSamples.ui.Common.UserInfo;
 import com.vuforia.samples.VuforiaSamples.ui.CustomView.CmtInputView;
@@ -74,6 +78,7 @@ import com.vuforia.samples.VuforiaSamples.ui.SampleAppMenu.SampleAppMenuGroup;
 import com.vuforia.samples.VuforiaSamples.ui.SampleAppMenu.SampleAppMenuInterface;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Vector;
@@ -170,6 +175,9 @@ public class VuMark extends Activity implements SampleApplicationControl,
 
                 intent = new Intent(VuMark.this, ActivityTabMain.class);
                 startActivity(intent);
+
+                //商品カードを削除
+                hideCard();
 
             }
         });
@@ -377,6 +385,30 @@ public class VuMark extends Activity implements SampleApplicationControl,
             @Override
             public void SabmitCallBack(int result, CommentInfo cInfo) {
 
+                //コメント送信処理
+                //コメントを追加する
+                //コメントデータをシリアライズ
+                final String requestStr = ConvertJson.SerializeJson(cInfo);
+                //HttpRequest
+                HttpRequest httpRequest = new HttpRequest(HttpRequest.EDIT_COMMENT,requestStr,null);
+                Uri.Builder builder = new Uri.Builder();
+                httpRequest.progressType = HttpRequest.ProgressType.NOPROGRESS;
+                httpRequest.execute(builder);
+                httpRequest.setOnCallBack(new HttpRequest.CallBackTask() {
+                    @Override
+                    public void CallBack(String result) {
+
+
+                        if(result.equals("0")){
+                            getCmtInfo();
+
+                            showToast("Success");
+                        }else {
+                            //失敗時の処理
+                        }
+                    }
+                });
+
             }
         });
 
@@ -397,6 +429,10 @@ public class VuMark extends Activity implements SampleApplicationControl,
         
     }
 
+    private void showToast(String text){
+        Toast.makeText(this,text,Toast.LENGTH_SHORT).show();
+    }
+
     /**
      * 読み込み情報を設定
      * @param type
@@ -409,12 +445,12 @@ public class VuMark extends Activity implements SampleApplicationControl,
             @Override
             public void run() {
                 // if scard is already visible with same VuMark, do nothing
-                if ((_viewCard.getVisibility() == View.VISIBLE) && (readId.equals(value))) {
+                if ( readId != null  && readId.equals(value)) {
                     return;
                 }
 
                 readId = value;
-                Animation bottomUp = AnimationUtils.loadAnimation(context,
+                final Animation bottomUp = AnimationUtils.loadAnimation(context,
                         R.anim.bottom_up);
 
                 //コメント入力を有効化
@@ -434,23 +470,48 @@ public class VuMark extends Activity implements SampleApplicationControl,
                     // テーブル設定
                     setTableRow(titleList, valueList);*/
                     //テスト用　商品データの受け取り
-                    //Json →　デシリアライズ
-                    ProductInfo productInfo = new ProductInfo();
-                    String jsonStr = "{\"description\":\"MAHOT COFFEEの想いが詰まったブレンド\",\"delInfo\":\"しっかりとしたビターなコクがあり、赤ワインのような上品なボディー。アクセントに完熟したチェリーのような風味がアフターテイストで楽しめます。,●●●●○,●●○○○,●●○○○,700円\\/100ｇ　1300円\\/200ｇ,370円,370円\",\"contentsName\":\"MAHOT ブレンド　SONE\"}";
+                    //マーカーIDをjsonにシリアライズ
+                    ProductInfo marker = new ProductInfo();
+                    marker.markerId = Integer.parseInt(readId);
+                    String markerId_json = ConvertJson.SerializeJson(marker);
+                    //HttpRequest
+                    Uri.Builder builder = new Uri.Builder();
+                    HttpRequest httpRequest = new HttpRequest(HttpRequest.SELECT_CONTENTS,markerId_json,null);
+                    httpRequest.progressType = HttpRequest.ProgressType.NOPROGRESS;
+                    httpRequest.execute(builder);
+                    httpRequest.setOnCallBack(new HttpRequest.CallBackTask() {
+                        @Override
+                        public void CallBack(String result) {
 
-                    productInfo = ConvertJson.DeserializeJsonToProductInfo(jsonStr);
-                    //項目名を取得
-                    productInfo.indexInfo = "商品名,キャッチコピー,詳細,コク,甘味,酸味,販売価格,ドリップコーヒー価格,カフェオレ価格";
+                            //Json →　デシリアライズ
+                            ProductInfo productInfo = new ProductInfo();
 
-                    UserInfo.getInstance().ConvertProductInfo(productInfo);
+                            String jsonStr = result;
+                           /* jsonStr = "{\"description\":\"MAHOT COFFEEの想いが詰まったブレンド\"," +
+                                    "\"delInfo\":\"しっかりとしたビターなコクがあり、赤ワインのような上品なボディー。アクセントに完熟したチェリーのような風味がアフターテイストで楽しめます。,●●●●○,●●○○○,●●○○○,700円\\/100ｇ　1300円\\/200ｇ,370円,370円\"," +
+                                    "\"contentsName\":\"MAHOT ブレンド　SONE\"," +
+                                    "\"image\":\"kakai4/privateWebDau/Root/image/sample1.png\"," +
+                                    "\"indexInfo\":\"商品名,キャッチコピー,詳細,コク,甘味,酸味,販売価格,ドリップコーヒー価格,カフェオレ価格\"}";*/
 
-                    //商品情報でカードを作成
-                    _contentCard.setContentsInfo(UserInfo.getInstance().getProductInfoMap());
+                            productInfo = ConvertJson.DeserializeJsonToProductInfo(jsonStr);
+
+                            productInfo.indexInfo = "商品名,キャッチコピー,詳細,コク,甘味,酸味,販売価格,ドリップコーヒー価格,カフェオレ価格";
+
+                            UserInfo.getInstance().ConvertProductInfo(productInfo);
+
+                            //商品情報でカードを作成
+                            _contentCard.setContentsInfo(UserInfo.getInstance().getProductInfoMap());
+
+                            _viewCard.bringToFront();
+                            _viewCard.setVisibility(View.VISIBLE);
+                            _viewCard.startAnimation(bottomUp);
+
+                            //コメント情報取得
+                            getCmtInfo();
+                        }
+                    });
 
 
-                    _viewCard.bringToFront();
-                    _viewCard.setVisibility(View.VISIBLE);
-                    _viewCard.startAnimation(bottomUp);
                     // mUILayout.invalidate();
                 }catch (Exception e){
 
@@ -458,6 +519,46 @@ public class VuMark extends Activity implements SampleApplicationControl,
 
             }
         });
+    }
+
+    private void getCmtInfo(){
+        try{
+
+            CmtDataList cmtdata = new CmtDataList();
+            cmtdata.userId = UserInfo.getInstance().getUserId();
+            cmtdata.markerId = Integer.parseInt(UserInfo.getInstance().getProductInfoMap().get("MarkerID"));
+            cmtdata.offset = 0;
+
+            final String requestStr = ConvertJson.SerializeJson(cmtdata);
+
+            //HttpRequest
+            HttpRequest httpRequest = new HttpRequest(HttpRequest.SELECT_COMMENT,requestStr,null);
+            Uri.Builder builder = new Uri.Builder();
+            httpRequest.progressType = HttpRequest.ProgressType.NOPROGRESS;
+            httpRequest.execute(builder);
+            httpRequest.setOnCallBack(new HttpRequest.CallBackTask() {
+                @Override
+                public void CallBack(String result) {
+
+                    String commentjsonStr = result;//"{\"dispList\":[{\"insertDate\":\"2017.11.25\",\"sex\":0,\"star\":5,\"userCmt\":\"美味しかった\",\"userId\":1,\"userName\":\"小田\"},{\"insertDate\":\"2017.12.1\",\"sex\":0,\"star\":3,\"userCmt\":\"苦かった\",\"userId\":2,\"userName\":\"田中\"},{\"insertDate\":\"2017.12.5\",\"sex\":0,\"star\":2,\"userCmt\":\"いまいち\",\"userId\":3,\"userName\":\"中橋\"},{\"insertDate\":\"2017.12.4\",\"sex\":0,\"star\":4,\"userCmt\":\"また来ます\",\"userId\":4,\"userName\":\"中野\"},{\"insertDate\":\"2017.12.5\",\"sex\":1,\"star\":1,\"userCmt\":\"まぁまぁ\",\"userId\":5,\"userName\":\"溝辺\"}],\"offset\":0,\"totalNumber\":5}";
+                    //Json文字列をデシリアライズ
+
+                    CmtDataList _commentData = ConvertJson.DeserializeJsonToCmtDataList(commentjsonStr);
+
+                    //自分のコメントがあったらテキストボックスに文字を入れる
+                    if( _commentData.userComment.userId != null){
+
+                        //コメント
+                        _cmtInputView.setText(_commentData.userComment.userCmt);
+                        //評価
+                        _cmtInputView.setStar((int)_commentData.userComment.star - 1);
+                    }
+
+                }
+            });
+
+        }catch (Exception e) {
+        }
     }
 
     /**
@@ -497,6 +598,8 @@ public class VuMark extends Activity implements SampleApplicationControl,
 
             //コメント入力を無効化
                 _cmtInputView.setEnabled(false);
+
+            readId = null;
 
             //_textType.setText("");
             //_textValue.setText("");

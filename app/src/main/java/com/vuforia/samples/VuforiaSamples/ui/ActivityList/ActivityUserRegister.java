@@ -79,7 +79,7 @@ public class ActivityUserRegister extends Activity{
 
                 try {
                     RadioButton rb = (RadioButton)findViewById(i);
-                    int sex = (int)rb.getTag();
+                    int sex = Integer.parseInt(String.valueOf(rb.getTag()));
 
                     //ユーザー情報更新
                     userInfo.setSex(sex);
@@ -136,13 +136,11 @@ public class ActivityUserRegister extends Activity{
 
             //String url = "http://192.168.0.150:8080/kakai2017-restapi/insert/user";
             //http_res = HttpRequest.excutePost(url,json);
-            Uri.Builder builder = new Uri.Builder();
+
             httpRequest = new HttpRequest(HttpRequest.INSERT_USERINFO, json,this);
-
+            Uri.Builder builder = new Uri.Builder();
             httpRequest.execute(builder);
-
             httpRequest.setOnCallBack(new HttpRequest.CallBackTask() {
-
                 @Override
                 public void CallBack(String result) {
                     //処理終了で呼び出すコールバック
@@ -151,7 +149,7 @@ public class ActivityUserRegister extends Activity{
                     //ユーザーIDを取得
                     //userInfo.setUserId(result);
                     //とりあえず１を登録
-                    userInfo.setUserId("1");
+                    userInfo.setUserId(result);
 
                     try {
                         //プリファレンスに書き込み

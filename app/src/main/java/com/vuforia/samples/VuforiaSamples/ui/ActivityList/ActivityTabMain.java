@@ -113,5 +113,19 @@ public class ActivityTabMain extends FragmentActivity {
                 return false;
             }
         });
+
+    }
+
+    @Override
+    protected void onPause(){
+        super.onPause();
+
+    }
+
+    @Override
+    protected void onStop(){
+        super.onStop();
+
+        this.finish();
     }
 }
