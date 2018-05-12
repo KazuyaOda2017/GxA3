@@ -108,7 +108,9 @@ public class ActivityUserRegister extends Activity{
 
                 //テキスト未入力でとりあえずリターン
                 if (userName.trim().equals("")) {
-                    return;
+                    //return;
+                    //匿名で登録する
+                    userName = getString(R.string.userName_unknown);
                 }
                 userInfo.setUserName(userName);
 

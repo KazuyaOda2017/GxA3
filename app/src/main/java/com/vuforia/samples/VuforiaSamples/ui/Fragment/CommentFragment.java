@@ -15,6 +15,7 @@ import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.TableRow;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vuforia.samples.VuforiaSamples.R;
@@ -140,8 +141,10 @@ public class CommentFragment extends Fragment{
                             //書き込み成功で画面を初期化する
                             Initialize();
 
-                        }else {
-                            //失敗時の処理
+                        }else  if(result.equals("1"))
+                        {
+                            //失敗時の処理※禁止ワード
+                            showToast("禁止ワードが含まれています");
                         }
                         //_commentData = ConvertJson.DeserializeJsonToCmtDataList(commentjsonStr);
 
@@ -171,6 +174,11 @@ public class CommentFragment extends Fragment{
         return layout;
 
     }
+
+    private void showToast(String text){
+        Toast.makeText(this.getActivity().getApplicationContext(),text,Toast.LENGTH_SHORT).show();
+    }
+
 
     //region 画面初期化
     private void Initialize() {

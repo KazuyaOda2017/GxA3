@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string name="app_name">Vuforia</string>
-    <string name="app_description">Vuforia Sample Applications</string>
+    <string name="app_name">GxA</string>
+    <string name="app_description">GxA Applications</string>
     
     <string name="button_start">Start</string>
     <string name="activities_list_title_string">Vuforia Samples</string>
@@ -85,7 +85,9 @@
     </string-array>
 
     <!--Step2-->
-    <string name="user_regist">ユーザー登録</string>
-    <string name="userName">ユーザー名</string>
+    <string name="user_regist">名前入力</string>
+    <string name="userName">名前</string>
+    <string name="userName_hint">匿名</string>
+    <string name="userName_unknown">匿名</string>
     
 </resources>

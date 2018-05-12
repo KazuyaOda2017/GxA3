@@ -80,7 +80,7 @@ public class ActivityTabMain extends FragmentActivity {
         //Layout取得
         getLayoutInflater().inflate(R.layout.tab_layout,vg);
         Button commentBtn = (Button)(vg.findViewById(R.id.tab_comment));
-        Button ditailBtn = (Button)(vg.findViewById(R.id.tab_ditail));
+        Button ditailBtn = (Button)(vg.findViewById(R.id.tab_detail));
        /* Button commentBtn = (Button)(findViewById(R.id.tab_comment));
         Button ditailBtn = (Button)(findViewById(R.id.tab_ditail));*/
 

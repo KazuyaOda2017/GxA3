@@ -403,8 +403,9 @@ public class VuMark extends Activity implements SampleApplicationControl,
                             getCmtInfo();
 
                             showToast("Success");
-                        }else {
+                        }else if(result.equals("1")){
                             //失敗時の処理
+                            showToast("禁止ワードが含まれています");
                         }
                     }
                 });
@@ -412,21 +413,6 @@ public class VuMark extends Activity implements SampleApplicationControl,
             }
         });
 
-        //テスト用ボタンを設置
-        Button testbutton = (Button)mUILayout.findViewById(R.id.test_btn);
-        testbutton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if (_viewCard.getVisibility() == View.VISIBLE) {
-                    hideCard();
-                    return ;
-                }
-
-                showCard("","test",null);
-
-            }
-        });
-        
     }
 
     private void showToast(String text){
